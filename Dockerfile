@@ -20,3 +20,4 @@ EXPOSE 8080
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+RUN mvn clean package -DskipTests -Dfile.encoding=UTF-8
