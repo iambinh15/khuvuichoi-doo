@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: java-spring-form
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile

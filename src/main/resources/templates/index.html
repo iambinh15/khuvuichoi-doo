@@ -4,42 +4,160 @@
   <meta charset="UTF-8">
   <title>Trang Chủ</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 100px;
+    * {
+      box-sizing: border-box;
     }
-    .button {
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 40px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 30px;
+    }
+
+    .menu-button {
       background-color: #4CAF50;
       color: white;
-      padding: 15px 30px;
-      margin: 10px;
+      padding: 14px 20px;
+      margin: 10px 0;
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 8px;
+      width: 80%;
       font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
-    .button:hover {
-      background-color: #45a049;
+
+    .menu-button:hover {
+      background-color: #3da143;
+      transform: scale(1.05);
+    }
+
+    /* Slideshow */
+    .content {
+      flex: 1;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .slideshow-container {
+      position: relative;
+      max-width: 700px;
+      width: 90%;
+    }
+
+    .slide {
+      display: none;
+    }
+
+    .slide img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .arrow {
+      cursor: pointer;
+      position: absolute;
+      top: 50%;
+      width: auto;
+      padding: 16px;
+      margin-top: -22px;
+      color: white;
+      font-weight: bold;
+      font-size: 24px;
+      border-radius: 0 3px 3px 0;
+      user-select: none;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .arrow:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .prev {
+      left: 0;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .next {
+      right: 0;
     }
   </style>
 </head>
 <body>
 
-<h1>🎉 Khu Vui Chơi DooDoo</h1>
-<p>Chọn một chức năng bên dưới:</p>
+<div class="sidebar">
+  <h2>🎉 DooDoo Menu</h2>
+  <form action="/san-pham">
+    <button class="menu-button">Quản lý Sản phẩm</button>
+  </form>
+  <form action="/hoa-don">
+    <button class="menu-button">Xem Hóa đơn</button>
+  </form>
+  <form action="/thong-ke">
+    <button class="menu-button">Thống kê</button>
+  </form>
+</div>
 
-<form action="/san-pham">
-  <button class="button">Quản lý Sản phẩm</button>
-</form>
+<div class="content">
+  <div class="slideshow-container">
+    <div class="slide">
+      <img src="https://via.placeholder.com/700x400/3498db/ffffff?text=Ảnh+1" alt="Ảnh 1">
+    </div>
+    <div class="slide">
+      <img src="https://via.placeholder.com/700x400/e74c3c/ffffff?text=Ảnh+2" alt="Ảnh 2">
+    </div>
+    <div class="slide">
+      <img src="https://via.placeholder.com/700x400/2ecc71/ffffff?text=Ảnh+3" alt="Ảnh 3">
+    </div>
 
-<form action="/hoa-don">
-  <button class="button">Xem Hóa đơn</button>
-</form>
+    <a class="arrow prev" onclick="changeSlide(-1)">❮</a>
+    <a class="arrow next" onclick="changeSlide(1)">❯</a>
+  </div>
+</div>
 
-<form action="/thong-ke">
-  <button class="button">Thống kê</button>
-</form>
+<script>
+  let slideIndex = 0;
+  let slides = document.getElementsByClassName("slide");
+  showSlide(slideIndex);
+
+  function changeSlide(n) {
+    slideIndex += n;
+    if (slideIndex >= slides.length) slideIndex = 0;
+    if (slideIndex < 0) slideIndex = slides.length - 1;
+    showSlide(slideIndex);
+  }
+
+  function showSlide(n) {
+    for (let i = 0; i < slides.length; i++) {
+      slides[i].style.display = "none";
+    }
+    slides[n].style.display = "block";
+  }
+
+  setInterval(() => {
+    changeSlide(1);
+  }, 3000); // Tự chuyển mỗi 3 giây
+</script>
 
 </body>
 </html>
