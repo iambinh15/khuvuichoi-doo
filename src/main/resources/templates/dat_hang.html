@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đặt hàng</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f5f5f5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #eee; }
+        input[type="number"] { width: 60px; }
+        .btn {
+            padding: 6px 12px; background-color: #3498db; color: white;
+            border: none; border-radius: 6px; cursor: pointer; margin-right: 5px;
+        }
+        .btn:hover { background-color: #2980b9; }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-save { background-color: #2ecc71; }
+        .btn-save:hover { background-color: #27ae60; }
+        .cart { margin-bottom: 30px; padding: 20px; background: #fff; border: 1px solid #ccc; border-radius: 10px; }
+        .total { text-align: right; margin-top: 10px; font-weight: bold; }
+        .method { margin-top: 20px; }
+        #qrModal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center;
+        }
+        #qrModal .content {
+            background: #fff; padding: 20px; border-radius: 12px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h2>🛒 Giỏ hàng</h2>
+<div class="cart">
+    <table id="cartTable">
+        <thead>
+        <tr><th>Tên SP</th><th>Giá</th><th>Số lượng</th><th>Thành tiền</th><th>Hành động</th></tr>
+        </thead>
+        <tbody id="cartBody"></tbody>
+    </table>
+    <div class="total">Tổng tiền: <span id="total">0</span> đ</div>
+
+    <div class="method">
+        <label><input type="radio" name="method" value="cash" checked> 💵 Tiền mặt</label>
+        <label><input type="radio" name="method" value="bank"> 🏦 Chuyển khoản</label>
+    </div>
+
+    <button class="btn btn-save" onclick="thanhToan()">💳 Thanh toán</button>
+</div>
+<footer style="text-align:center; font-size:13px; color:#888; margin-top:40px;">
+    Nguồn trên thuộc quyền sở hữu của <strong>Bình Chu</strong>. Vui lòng không reup dưới bất kỳ hình thức nào.
+    <br> Liên hệ hỗ trợ, công việc Zalo: 0389415404 –
+    Fb: <a href="https://www.facebook.com/binh.chu.434869" target="_blank" style="color:#3b5998; text-decoration:none;"><strong>Bình Chu</strong></a>
+</footer>
+<h2>📦 Danh sách sản phẩm</h2>
+<table>
+    <thead>
+    <tr><th>Tên</th><th>Giá</th><th>Số lượng</th><th></th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="sp, iStat : ${dsSanPham}">
+        <td th:text="${sp.tenSanPham}">Tên SP</td>
+        <td th:text="${#numbers.formatDecimal(sp.donGia, 0, 'POINT', 0, 'COMMA')} + ' đ'">0</td>
+
+        <td><input type="number" min="1" value="1" th:id="'qty-' + ${iStat.index}"></td>
+        <td>
+            <button class="btn"
+                    th:attr="onclick=|addToCart('${sp.tenSanPham}', ${sp.donGia}, 'qty-${iStat.index}')|">
+                Thêm
+            </button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Modal QR chuyển khoản -->
+<div id="qrModal">
+    <div class="content">
+        <h3>🔁 Chuyển khoản</h3>
+        <p><strong>Ngân hàng:</strong> <span id="bankName">MB</span></p>
+        <p><strong>Số tài khoản:</strong> <span id="accountNumber">0389415404</span></p>
+        <p><strong>Chủ tài khoản:</strong> <span id="accountName">CHU DINH BINH</span></p>
+        <p><strong>Số tiền:</strong> <span id="qrAmount">0</span> đ</p>
+        <p><strong>Nội dung:</strong> <span id="qrNote">Thanh toan don hang</span></p>
+        <img id="qrImage" src="" alt="QR chuyển khoản" style="max-width: 300px; margin: 20px auto;">
+        <br>
+        <button class="btn btn-danger" onclick="document.getElementById('qrModal').style.display='none'">Đóng</button>
+    </div>
+</div>
+
+<script>
+    const cart = [];
+
+    function addToCart(name, price, qtyId) {
+        const qty = parseInt(document.getElementById(qtyId).value);
+        if (qty <= 0) return alert("Số lượng không hợp lệ");
+
+        const existing = cart.find(item => item.name === name);
+        if (existing) {
+            existing.qty += qty;
+        } else {
+            cart.push({name, price, qty, editing: false});
+        }
+        renderCart();
+    }
+
+    function removeItem(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function editItem(index) {
+        cart[index].editing = true;
+        renderCart();
+    }
+
+    function saveItem(index) {
+        const newQty = parseInt(document.getElementById("editQty-" + index).value);
+        if (newQty <= 0) return alert("Số lượng không hợp lệ");
+        cart[index].qty = newQty;
+        cart[index].editing = false;
+        renderCart();
+    }
+
+    function renderCart() {
+        const tbody = document.getElementById("cartBody");
+        const totalSpan = document.getElementById("total");
+        tbody.innerHTML = "";
+        let total = 0;
+
+        cart.forEach((item, i) => {
+            const thanhTien = item.price * item.qty;
+            total += thanhTien;
+            const row = document.createElement("tr");
+            row.innerHTML = item.editing
+                ? `<td>${item.name}</td><td>${item.price} đ</td>
+                   <td><input type="number" id="editQty-${i}" value="${item.qty}" min="1"></td>
+                   <td>${thanhTien} đ</td>
+                   <td><button class="btn btn-save" onclick="saveItem(${i})">💾 Lưu</button></td>`
+                : `<td>${item.name}</td><td>${item.price} đ</td>
+                   <td>${item.qty}</td><td>${thanhTien} đ</td>
+                   <td>
+                       <button class="btn" onclick="editItem(${i})">📝 Sửa</button>
+                       <button class="btn btn-danger" onclick="removeItem(${i})">Xoá</button>
+                   </td>`;
+            tbody.appendChild(row);
+        });
+
+        totalSpan.textContent = total.toLocaleString();
+    }
+
+    function thanhToan() {
+        const method = document.querySelector('input[name="method"]:checked').value;
+        if (cart.length === 0) return alert("🛒 Giỏ hàng trống");
+
+        const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+        // Tạo dữ liệu đúng với DonHangDTO trong Java
+        const gioHangDTO = cart.map(item => ({
+            ten: item.name,         // phải trùng với tên biến trong DonHangDTO.java
+            soLuong: item.qty,
+            donGia: item.price
+        }));
+
+        if (method === "cash") {
+            // Gửi dữ liệu lên server để trừ hàng + tính tổng tiền
+            fetch("/don-hang/thanh-toan", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(gioHangDTO)
+            })
+                .then(res => res.text())
+                .then(msg => {
+                    alert(msg);
+                    cart.length = 0;   // Xóa giỏ hàng sau khi thanh toán
+                    renderCart();
+                })
+                .catch(err => {
+                    console.error("Lỗi:", err);
+                    alert("❌ Lỗi khi gửi đơn hàng");
+                });
+        } else if (method === "bank") {
+            const stk = "0389415404";
+            const ten = "CHU DINH BINH";
+            const bank = "MB";
+            const note = "Thanh toan don hang";
+
+            // Dùng dịch vụ vietqr để tạo mã QR thanh toán
+            const qrUrl = `https://img.vietqr.io/image/${bank}-${stk}-compact.png?amount=${total}&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(ten)}`;
+
+            // Gán các thông tin vào modal QR
+            document.getElementById("qrImage").src = qrUrl;
+            document.getElementById("accountNumber").innerText = stk;
+            document.getElementById("accountName").innerText = ten;
+            document.getElementById("qrAmount").innerText = total.toLocaleString();
+            document.getElementById("qrNote").innerText = note;
+            document.getElementById("qrModal").style.display = "flex";
+        }
+    }
+
+
+</script>
+
+
+</body>
+</html>

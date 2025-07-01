@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê hóa đơn</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 40px;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            width: 80%;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 80%;
+            margin: 40px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<h2>📊 Thống kê Hóa đơn</h2>
+
+<div class="chart-container">
+    <canvas id="hoaDonChart"></canvas>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Ngày</th>
+        <th>Số hóa đơn</th>
+        <th>Doanh thu (VNĐ)</th>
+    </tr>
+    </thead>
+    <tbody id="thongke-body">
+    <!-- Dữ liệu được thêm bằng JS -->
+    </tbody>
+</table>
+
+<script>
+    fetch('/api/thong-ke-hoa-don')
+        .then(res => res.json())
+        .then(data => {
+            const labels = data.map(item => item.ngay);
+            const soHoaDonData = data.map(item => item.soHoaDon);
+            const doanhThuData = data.map(item => item.tongTien);
+
+            new Chart(document.getElementById("hoaDonChart"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Số hóa đơn",
+                            backgroundColor: "#3498db",
+                            data: soHoaDonData,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: "Doanh thu (VNĐ)",
+                            backgroundColor: "#2ecc71",
+                            data: doanhThuData,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    stacked: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Biểu đồ Thống kê Hóa đơn theo ngày'
+                        }
+                    },
+                    scales: {
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Số hóa đơn'
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'Doanh thu (VNĐ)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById("thongke-body");
+            data.forEach(item => {
+                const row = `<tr>
+              <td>${item.ngay}</td>
+              <td>${item.soHoaDon}</td>
+              <td>${parseInt(item.tongTien).toLocaleString('vi-VN')} đ</td>
+            </tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+</script>
+</body>
+</html>

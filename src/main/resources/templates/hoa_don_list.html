@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách Hóa đơn</title>
+  <style>
+    body { font-family: sans-serif; padding: 30px; background-color: #f2f2f2; }
+    h2 { text-align: center; color: #2c3e50; }
+    table { width: 80%; margin: auto; border-collapse: collapse; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+    th, td { padding: 12px; border-bottom: 1px solid #ccc; text-align: center; }
+    th { background-color: #3498db; color: white; }
+    a.btn-view { color: #fff; background: #27ae60; padding: 6px 12px; border-radius: 6px; text-decoration: none; }
+  </style>
+</head>
+<body>
+<h2>📄 Danh sách Hóa đơn PDF</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Ngày</th>
+    <th>Tên File</th>
+    <th>Xem</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="hd : ${hoaDonList}">
+    <td th:text="${hd.ngay}">2025-06-30</td>
+    <td th:text="${hd.tenFile}">hoa-don-001.pdf</td>
+    <td><a th:href="${hd.duongDan}" target="_blank" class="btn-view">Xem PDF</a></td>
+  </tr>
+  </tbody>
+</table>
+<footer style="text-align:center; font-size:13px; color:#888; margin-top:40px;">
+  Nguồn trên thuộc quyền sở hữu của <strong>Bình Chu</strong>. Vui lòng không reup dưới bất kỳ hình thức nào.
+  <br> Liên hệ hỗ trợ, công việc Zalo: 0389415404 –
+  Fb: <a href="https://www.facebook.com/binh.chu.434869" target="_blank" style="color:#3b5998; text-decoration:none;"><strong>Bình Chu</strong></a>
+</footer>
+</body>
+</html>
